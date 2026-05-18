@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Elegant Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="text-gray-100 flex flex-col items-center justify-center p-4">
+
+    <!-- Container Utama -->
+    <div class="w-full max-w-4xl glass rounded-3xl overflow-hidden flex flex-col h-[85vh] shadow-2xl">
+        
+        <!-- Header -->
+        <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/50">
+                    <i class="fas fa-robot text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide">AI Assistant</h1>
+                    <p class="text-xs text-green-400 flex items-center gap-1">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Online
+                    </p>
+                </div>
+            </div>
+            <button class="hover:bg-white/10 p-2 rounded-xl transition-all">
+                <i class="fas fa-ellipsis-v text-gray-400"></i>
+            </button>
+        </div>
+
+        <!-- Area Chat -->
+        <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
+            <!-- Pesan Bot -->
+            <div class="flex justify-start">
+                <div class="glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed">
+                    Halo! Ada yang bisa saya bantu hari ini?
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-6 bg-white/5 border-t border-white/10">
+            <div class="relative flex items-center">
+                <input type="text" id="user-input" 
+                    placeholder="Ketik pesan di sini..." 
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-6 pr-16 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-500">
+                <button onclick="sendMessage()" class="absolute right-2 bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl transition-all shadow-lg">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === "") return;
+
+            // Tambah pesan user ke UI
+            appendMessage(text, 'user');
+            userInput.value = "";
+
+            // Simulasi respon AI (Loading)
+            setTimeout(() => {
+                appendMessage("Ini adalah simulasi respon AI. Hubungkan API untuk jawaban nyata.", 'bot');
+            }, 1000);
+        }
+
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+            
+            const innerDiv = document.createElement('div');
+            innerDiv.className = sender === 'user' 
+                ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg' 
+                : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed';
+            
+            innerDiv.innerText = text;
+            msgDiv.appendChild(innerDiv);
+            chatBox.appendChild(msgDiv);
+            
+            // Auto scroll ke bawah
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Support tekan Enter
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>
