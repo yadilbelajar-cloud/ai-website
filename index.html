@@ -68,7 +68,7 @@
         const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 
-// Pastikan API Key di bawah ini benar tanpa spasi
+// Masukkan API Key Anda di sini
 const API_KEY = "AIzaSyD4c9NGVCM2kLSp_HgP3q_wnc7mRwBwrvA"; 
 
 async function sendMessage() {
@@ -81,8 +81,8 @@ async function sendMessage() {
     const loadingId = "loading-" + Date.now();
     appendMessage("Sedang berpikir...", 'bot', loadingId);
 
-    // PERBAIKAN: Menggunakan endpoint v1 yang lebih stabil
-    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    // MENGGUNAKAN v1beta dengan pengecekan API Key
+    const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
     try {
         const response = await fetch(URL, {
@@ -95,23 +95,21 @@ async function sendMessage() {
 
         const data = await response.json();
 
-        // Cek apakah ada error dari Google (seperti API Key salah/limit habis)
         if (!response.ok) {
-            throw new Error(data.error ? data.error.message : "Gagal terhubung ke AI");
+            // Ini akan memunculkan pesan jika API Key salah atau limit habis
+            throw new Error(data.error ? data.error.message : "Server menolak permintaan (404/403)");
         }
 
-        // Cek apakah data jawaban ada sebelum membacanya (Mencegah TypeError)
-        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+        if (data.candidates && data.candidates[0].content) {
             const aiResponse = data.candidates[0].content.parts[0].text;
             document.getElementById(loadingId).innerText = aiResponse;
         } else {
-            throw new Error("Format jawaban tidak dikenali");
+            throw new Error("Jawaban kosong dari AI.");
         }
 
     } catch (error) {
         console.error("Detail Error:", error);
-        // Menampilkan pesan error asli di layar agar Anda tahu penyebabnya
-        document.getElementById(loadingId).innerText = "Error: " + error.message;
+        document.getElementById(loadingId).innerText = "Maaf, terjadi kesalahan: " + error.message;
     }
 }
 
@@ -124,7 +122,7 @@ function appendMessage(text, sender, id = null) {
     
     innerDiv.className = sender === 'user' 
         ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg' 
-        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed';
+        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap';
     
     innerDiv.innerText = text;
     msgDiv.appendChild(innerDiv);
