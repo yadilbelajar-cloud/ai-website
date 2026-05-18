@@ -69,7 +69,7 @@
 const userInput = document.getElementById('user-input');
 
 // Masukkan API Key Anda di sini
-const API_KEY = "AIzaSyDJIGwIPj9oIp-hwkkhwCG17txBycBf0qk"; 
+const API_KEY = "AIzaSyD4c9NGVCM2kLSp_HgP3q_wnc7mRwBwrvA"; 
 
 async function sendMessage() {
     const text = userInput.value.trim();
@@ -81,8 +81,8 @@ async function sendMessage() {
     const loadingId = "loading-" + Date.now();
     appendMessage("Sedang berpikir...", 'bot', loadingId);
 
-    // Kita coba gunakan versi 'flash-latest' yang seringkali lebih stabil di v1beta
-    const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+    // FIX: Menggunakan nama model Gemini 3 Flash Preview
+    const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
 
     try {
         const response = await fetch(URL, {
@@ -96,11 +96,7 @@ async function sendMessage() {
         const data = await response.json();
 
         if (!response.ok) {
-            // Jika masih 404, tampilkan pesan instruksi buat API Key baru
-            if (response.status === 404) {
-                throw new Error("Model tidak ditemukan di region Anda atau API Key belum aktif sepenuhnya. Coba buat API Key baru di Google AI Studio.");
-            }
-            throw new Error(data.error ? data.error.message : "Terjadi kesalahan API");
+            throw new Error(data.error ? data.error.message : "Gagal terhubung ke Gemini 3");
         }
 
         if (data.candidates && data.candidates[0].content) {
@@ -112,7 +108,7 @@ async function sendMessage() {
 
     } catch (error) {
         console.error("Detail Error:", error);
-        document.getElementById(loadingId).innerText = "Maaf: " + error.message;
+        document.getElementById(loadingId).innerText = "Maaf, terjadi kesalahan: " + error.message;
     }
 }
 
