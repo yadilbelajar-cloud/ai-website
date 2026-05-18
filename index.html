@@ -81,7 +81,7 @@ async function sendMessage() {
     const loadingId = "loading-" + Date.now();
     appendMessage("Sedang berpikir...", 'bot', loadingId);
 
-    // MENGGUNAKAN v1beta dengan pengecekan API Key
+    // FIX: Menggunakan v1beta dan memastikan URL bersih
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
     try {
@@ -95,21 +95,23 @@ async function sendMessage() {
 
         const data = await response.json();
 
+        // Cek jika response HTTP tidak sukses (404, 400, 403, dll)
         if (!response.ok) {
-            // Ini akan memunculkan pesan jika API Key salah atau limit habis
-            throw new Error(data.error ? data.error.message : "Server menolak permintaan (404/403)");
+            const errorMsg = data.error ? data.error.message : "Terjadi kesalahan pada API";
+            throw new Error(errorMsg);
         }
 
-        if (data.candidates && data.candidates[0].content) {
+        // Pastikan struktur data dari Google ada sebelum dibaca
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
             const aiResponse = data.candidates[0].content.parts[0].text;
             document.getElementById(loadingId).innerText = aiResponse;
         } else {
-            throw new Error("Jawaban kosong dari AI.");
+            throw new Error("Format balasan AI tidak sesuai atau kosong.");
         }
 
     } catch (error) {
         console.error("Detail Error:", error);
-        document.getElementById(loadingId).innerText = "Maaf, terjadi kesalahan: " + error.message;
+        document.getElementById(loadingId).innerText = "Error: " + error.message;
     }
 }
 
@@ -120,6 +122,7 @@ function appendMessage(text, sender, id = null) {
     const innerDiv = document.createElement('div');
     if (id) innerDiv.id = id;
     
+    // whitespace-pre-wrap agar format teks (enter/paragraf) dari AI tetap terjaga
     innerDiv.className = sender === 'user' 
         ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg' 
         : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap';
