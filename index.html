@@ -66,43 +66,66 @@
 
     <script>
         const chatBox = document.getElementById('chat-box');
-        const userInput = document.getElementById('user-input');
+const userInput = document.getElementById('user-input');
 
-        function sendMessage() {
-            const text = userInput.value.trim();
-            if (text === "") return;
+// GANTI DENGAN API KEY ANDA
+const API_KEY = "MASUKKAN_API_KEY_GEMINI_ANDA_DI_SINI"; 
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-            // Tambah pesan user ke UI
-            appendMessage(text, 'user');
-            userInput.value = "";
+async function sendMessage() {
+    const text = userInput.value.trim();
+    if (text === "") return;
 
-            // Simulasi respon AI (Loading)
-            setTimeout(() => {
-                appendMessage("Ini adalah simulasi respon AI. Hubungkan API untuk jawaban nyata.", 'bot');
-            }, 1000);
-        }
+    // 1. Tampilkan pesan user
+    appendMessage(text, 'user');
+    userInput.value = "";
 
-        function appendMessage(text, sender) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
-            
-            const innerDiv = document.createElement('div');
-            innerDiv.className = sender === 'user' 
-                ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg' 
-                : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed';
-            
-            innerDiv.innerText = text;
-            msgDiv.appendChild(innerDiv);
-            chatBox.appendChild(msgDiv);
-            
-            // Auto scroll ke bawah
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+    // 2. Tampilkan indikator "Sedang berpikir..."
+    const loadingId = "loading-" + Date.now();
+    appendMessage("Sedang berpikir...", 'bot', loadingId);
 
-        // Support tekan Enter
-        userInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") sendMessage();
+    try {
+        // 3. Panggil API Gemini
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: text }] }]
+            })
         });
+
+        const data = await response.json();
+        const aiResponse = data.candidates[0].content.parts[0].text;
+
+        // 4. Update pesan bot dengan jawaban asli
+        document.getElementById(loadingId).innerText = aiResponse;
+
+    } catch (error) {
+        document.getElementById(loadingId).innerText = "Waduh, ada masalah koneksi. Coba lagi ya!";
+        console.error("Error:", error);
+    }
+}
+
+function appendMessage(text, sender, id = null) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+    
+    const innerDiv = document.createElement('div');
+    if (id) innerDiv.id = id;
+    
+    innerDiv.className = sender === 'user' 
+        ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg shadow-blue-900/20' 
+        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed';
+    
+    innerDiv.innerText = text;
+    msgDiv.appendChild(innerDiv);
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+userInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
+});
     </script>
 </body>
 </html>
