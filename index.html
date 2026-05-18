@@ -68,7 +68,7 @@
         const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 
-// Masukkan API Key Anda di sini
+// Pastikan API Key di bawah ini benar tanpa spasi
 const API_KEY = "AIzaSyD4c9NGVCM2kLSp_HgP3q_wnc7mRwBwrvA"; 
 
 async function sendMessage() {
@@ -81,11 +81,11 @@ async function sendMessage() {
     const loadingId = "loading-" + Date.now();
     appendMessage("Sedang berpikir...", 'bot', loadingId);
 
-    // Perbaikan URL: Menggunakan v1 (lebih stabil) dan memastikan tidak ada spasi
-    const CLEAN_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY.trim()}`;
+    // PERBAIKAN: Menggunakan endpoint v1 yang lebih stabil
+    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
     try {
-        const response = await fetch(CLEAN_URL, {
+        const response = await fetch(URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -95,19 +95,23 @@ async function sendMessage() {
 
         const data = await response.json();
 
-        // Cek jika response sukses
-        if (response.ok && data.candidates && data.candidates[0].content) {
+        // Cek apakah ada error dari Google (seperti API Key salah/limit habis)
+        if (!response.ok) {
+            throw new Error(data.error ? data.error.message : "Gagal terhubung ke AI");
+        }
+
+        // Cek apakah data jawaban ada sebelum membacanya (Mencegah TypeError)
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
             const aiResponse = data.candidates[0].content.parts[0].text;
             document.getElementById(loadingId).innerText = aiResponse;
         } else {
-            // Jika API memberikan pesan error spesifik
-            const errorMsg = data.error ? data.error.message : "Gagal memproses jawaban.";
-            throw new Error(errorMsg);
+            throw new Error("Format jawaban tidak dikenali");
         }
 
     } catch (error) {
         console.error("Detail Error:", error);
-        document.getElementById(loadingId).innerText = "Maaf, terjadi kesalahan: " + error.message;
+        // Menampilkan pesan error asli di layar agar Anda tahu penyebabnya
+        document.getElementById(loadingId).innerText = "Error: " + error.message;
     }
 }
 
@@ -120,7 +124,7 @@ function appendMessage(text, sender, id = null) {
     
     innerDiv.className = sender === 'user' 
         ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg' 
-        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap';
+        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed';
     
     innerDiv.innerText = text;
     msgDiv.appendChild(innerDiv);
