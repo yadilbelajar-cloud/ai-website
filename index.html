@@ -68,25 +68,24 @@
         const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 
-// GANTI DENGAN API KEY ANDA
+// Masukkan API Key Anda di sini
 const API_KEY = "AIzaSyD4c9NGVCM2kLSp_HgP3q_wnc7mRwBwrvA"; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
 async function sendMessage() {
     const text = userInput.value.trim();
     if (text === "") return;
 
-    // 1. Tampilkan pesan user
     appendMessage(text, 'user');
     userInput.value = "";
 
-    // 2. Tampilkan indikator "Sedang berpikir..."
     const loadingId = "loading-" + Date.now();
     appendMessage("Sedang berpikir...", 'bot', loadingId);
 
+    // Perbaikan URL: Menggunakan v1 (lebih stabil) dan memastikan tidak ada spasi
+    const CLEAN_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY.trim()}`;
+
     try {
-        // 3. Panggil API Gemini
-        const response = await fetch(API_URL, {
+        const response = await fetch(CLEAN_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -95,14 +94,20 @@ async function sendMessage() {
         });
 
         const data = await response.json();
-        const aiResponse = data.candidates[0].content.parts[0].text;
 
-        // 4. Update pesan bot dengan jawaban asli
-        document.getElementById(loadingId).innerText = aiResponse;
+        // Cek jika response sukses
+        if (response.ok && data.candidates && data.candidates[0].content) {
+            const aiResponse = data.candidates[0].content.parts[0].text;
+            document.getElementById(loadingId).innerText = aiResponse;
+        } else {
+            // Jika API memberikan pesan error spesifik
+            const errorMsg = data.error ? data.error.message : "Gagal memproses jawaban.";
+            throw new Error(errorMsg);
+        }
 
     } catch (error) {
-        document.getElementById(loadingId).innerText = "Waduh, ada masalah koneksi. Coba lagi ya!";
-        console.error("Error:", error);
+        console.error("Detail Error:", error);
+        document.getElementById(loadingId).innerText = "Maaf, terjadi kesalahan: " + error.message;
     }
 }
 
@@ -114,8 +119,8 @@ function appendMessage(text, sender, id = null) {
     if (id) innerDiv.id = id;
     
     innerDiv.className = sender === 'user' 
-        ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg shadow-blue-900/20' 
-        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed';
+        ? 'bg-blue-600 p-4 rounded-2xl rounded-tr-none max-w-[80%] text-sm shadow-lg' 
+        : 'glass p-4 rounded-2xl rounded-tl-none max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap';
     
     innerDiv.innerText = text;
     msgDiv.appendChild(innerDiv);
